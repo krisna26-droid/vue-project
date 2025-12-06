@@ -10,32 +10,29 @@
       </p>
     </div>
 
-    <!-- Kirim props "recipes" ke RecipeList -->
-    <!-- <RecipeList :recipes="recipeList" /> -->
-     <recipe-list :recipes="recipeList" v-if="recipeListStatus"></recipe-list>
+    <!-- Render hanya jika data sudah ada -->
+    <recipe-list
+      :recipes="recipeList"
+      v-if="recipeListStatus"
+    ></recipe-list>
   </div>
 </template>
 
 <script setup>
 import RecipeList from "../recipe/RecipeList.vue";
-import { onMounted, ref } from "vue";
+import { onMounted, computed } from "vue";
 import { useStore } from "vuex";
 
 const store = useStore();
-const recipeListStatus = ref([false]);
-const recipeList = ref([]);
+
+const recipeList = computed(() => store.state.recipe.recipes);
+
+const recipeListStatus = computed(() => recipeList.value.length > 0);
 
 onMounted(async () => {
-    try {
-        await store.dispatch("recipe/getRecipeData");
-        recipeListStatus.value = true;
-        recipeList.value = store.state.recipe.Recipes;
-    } catch (error) {
-        console.log(error);
-    }
+  await store.dispatch("recipe/getRecipeData");
 });
 </script>
-
 
 <style scoped>
 .recipe__title h2 {
