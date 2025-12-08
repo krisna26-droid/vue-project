@@ -18,9 +18,6 @@ export default {
     HomePage,
     WebFooter,
   },
-};
+};  
 </script>
-
-<style>
-/* optional */
-</style>
+<style></style>
