@@ -1,5 +1,5 @@
 <template>
-  <div v-if="recipeDetail.name" class="my-2 p-4 d-flex flex-column-reverse flex-lg-row justify-content-between border border-secondary-subtle rounded">
+  <div v-if="recipeDetail && recipeDetail.name" class="my-2 p-4 d-flex flex-column-reverse flex-lg-row justify-content-between border border-secondary-subtle rounded">
     <div class="pe-lg-4">
       <h2>{{ recipeDetail.name }}</h2>
       <p>{{ recipeDetail.description }}</p>
@@ -36,7 +36,7 @@
         </div>
       </div>
 
-      <p class="my-3">Recipe By {{ recipeDetail.author }}</p>
+      <p class="my-3">Recipe By {{ recipeDetail.username || 'Unknown' }}</p>
       <div>
         <button class="btn fav-btn px-3 py-2 rounded-pill">
           <i class="far fa-heart pe-2"></i>Add To Favorite
@@ -46,22 +46,26 @@
 
     <div class="ps-lg-4">
       <img 
-        v-if="recipeDetail.image"
-        :src="recipeDetail.image" 
+        v-if="recipeDetail.imageLink"
+        :src="recipeDetail.imageLink" 
         :alt="recipeDetail.name" 
         class="recipe__detail-img rounded mx-auto" 
         style="object-fit: cover"
-        @error="handleImageError"
       />
-      <div v-else class="recipe__detail-img rounded mx-auto bg-secondary d-flex align-items-center justify-content-center">
+      <div 
+        v-else 
+        class="recipe__detail-img rounded mx-auto bg-secondary d-flex align-items-center justify-content-center"
+      >
         <span class="text-white">No Image</span>
       </div>
     </div>
   </div>
   
-  <!-- Loading state -->
-  <div v-else class="text-center my-5">
-    <p>Loading recipe...</p>
+  <div v-else class="text-center my-5 py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3">Loading recipe...</p>
   </div>
 </template>
 
@@ -74,11 +78,32 @@ const store = useStore();
 const recipeDetail = computed(() => store.state.recipe.recipeDetail || {});
 
 const totalTime = computed(() => {
-  return (recipeDetail.value.prepTime || 0) + (recipeDetail.value.cookTime || 0);
+  const prepTime = recipeDetail.value.prepTime || 0;
+  const cookTime = recipeDetail.value.cookTime || 0;
+  return prepTime + cookTime;
 });
-
-const handleImageError = (event) => {
-  console.log("Image failed to load:", recipeDetail.value.image);
-  event.target.src = "https://via.placeholder.com/400x300?text=No+Image";
-};
 </script>
+
+<style scoped>
+.recipe__detail-img {
+  width: 100%;
+  height: 100%;
+  
+}
+
+.bg-color-detail {
+  background-color: #f8f9fa;
+}
+
+.fav-btn {
+  background-color: #fff;
+  border: 2px solid #dc3545;
+  color: #dc3545;
+  transition: all 0.3s ease;
+}
+
+.fav-btn:hover {
+  background-color: #dc3545;
+  color: #fff;
+}
+</style>

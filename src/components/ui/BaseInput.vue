@@ -4,22 +4,33 @@
             {{ label }} <span style="color: #cb3a31">*</span>
             <slot></slot>
         </label>
-        <input class="form-control" :type="type" :id="identity"
-            :placeholder="Placeholder" :value="modelValue"
-            :readonly="readonly === '1'" 
-            :class="[{ 'd-none': isImage }, 'form-control']"
+
+        <input
+            class="form-control"
+            :class="{ 'd-none': isImage }"
+            :type="type"
+            :id="identity"
+            :placeholder="Placeholder"
+            :readonly="readonly === '1'"
+            :value="modelValue"
+            @input="$emit('update:modelValue', $event.target.value)"
+            @keyup="$emit('keyInput', $event.target.value)"
         />
     </div>
-</template> 
+</template>
 
 <script setup>
-import { defineProps } from 'vue';
+import { defineProps, defineEmits } from 'vue';
+
 const props = defineProps({
-    type: {type: String, require: true},
-    label: {type: String, require: true},
-    identity: {type: String, require: true},
-    Placeholder: {type: String, require: false},
-    readonly: {type: String, require: true, default: '0'},
-    isImage: {type: Boolean, require: true, default: false},
-})
+    modelValue: { type: [String, Number], default: '' },
+    type: { type: String, required: true },
+    label: { type: String, required: true },
+    identity: { type: String, required: true },
+    Placeholder: { type: String, required: false },
+    readonly: { type: String, default: '0' },
+    isImage: { type: Boolean, default: false },
+});
+
+const emit = defineEmits(['update:modelValue']);
 </script>

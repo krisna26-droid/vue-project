@@ -52,7 +52,12 @@
             identity="password"
             placeholder="Your Password"
             label="Password"
+            v-model="signupData.password" 
+            @keyInput="passwordCheck"
           />
+          <p class="text-danger mt-1 fw-medium" style="font-size:11px" :style="{ display: passwordStatusDisplay }">
+            The password must be at least 8 characters long and contain a mix of letters, numbers, and special characters.
+          </p>
         </div>
 
         <div class="mb-4">
@@ -66,12 +71,12 @@
 
         <!-- FOTO PROFIL -->
         <div class="my-4">
-          <base-input type="file" identity="recipeImage" label="Profile Photo" isImage="True" />
+          <base-input type="file" identity="recipeImage" label="Profile Photo" isImage="True" @input="checkImage" />
 
           <div class="position-relative d-flex justify-content-center mt-3">
             <div class="profile-photo-wrapper">
               <img 
-                src="https://cdn-icons-png.flaticon.com/512/219/219986.png"
+                :src="signupData.imageLink || 'https://cdn-icons-png.flaticon.com/512/219/219986.png'"
                 alt="User"
                 class="profile-photo"
               />
@@ -105,8 +110,41 @@
 <script setup>
 import { useRouter } from "vue-router";
 import BaseInput from "../ui/BaseInput.vue";
+import { reactive, ref } from "vue";
+
+const signupData = reactive({
+  firstName: "",
+  lastName: "",
+  username: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  isLogin: false,
+  imageLink: "",
+});
+
+const passwordStatusDisplay = ref(none);
+const passwordCheck = (value) => {
+  if (signupData.password.length < 8) {
+    passwordStatusDisplay.value = "block";
+  } else {
+    passwordStatusDisplay.value = "none";
+  }
+} 
 
 const router = useRouter();
+
+const checkImage = (event) => {
+  const file = event.target.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      signupData.imageLink = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
 const goToLogin = () => router.push("/login");
 </script>
 
