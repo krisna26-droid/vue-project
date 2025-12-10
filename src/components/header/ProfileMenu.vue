@@ -1,25 +1,55 @@
 <template>
-  <div
-    class="header__signup col-8 col-sm-4 fw-semibold d-flex justify-content-evenly align-items-center text-decoration-none"
-    style="text-align: right"
-  >
-    <i class="fa-solid fa-user" style="color: #4c4ddc"></i>
+  <div class="profile-dropdown">
     <ul class="navbar-nav">
       <li class="nav-item dropdown">
-        <a
-          class="nav-link dropdown-toggle"
-          href="#"
-          role="button"
+        <a 
+          class="nav-link dropdown-toggle d-flex align-items-center gap-2 py-2 px-3" 
+          href="#" 
+          role="button" 
           data-bs-toggle="dropdown"
+          aria-expanded="false"
         >
-          My Profile
+          <i class="fa-solid fa-user" style="color: #4c4ddc"></i>
+          <span class="fw-semibold">My Profile</span>
         </a>
-        <ul class="dropdown-menu">
-          <li class="dropdown-item">My Profile</li>
-          <li class="dropdown-item">Favorited Recipes</li>
-          <li class="dropdown-item">My Recipes</li>
-          <li><hr class="dropdown-divider" /></li>
-          <li class="dropdown-item" @click="logout">Logout</li>
+        
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+          <!-- User Info Section (Optional) -->
+          <li class="px-3 py-2 border-bottom" v-if="userInfo">
+            <p class="mb-0 fw-semibold small">{{ userInfo.name }}</p>
+            <p class="mb-0 text-muted" style="font-size: 0.75rem">{{ userInfo.email }}</p>
+          </li>
+          
+          <!-- Menu Items -->
+          <li>
+            <router-link to="/user/personal-info" class="dropdown-item py-2">
+              <i class="fa-solid fa-user me-2" style="width: 20px"></i>
+              My Profile
+            </router-link>
+          </li>
+          
+          <li>
+            <router-link to="/user/favorite-recipe" class="dropdown-item py-2">
+              <i class="fa-solid fa-heart me-2" style="width: 20px"></i>
+              Favorited Recipes
+            </router-link>
+          </li>
+          
+          <li>
+            <router-link to="/user/user-recipe" class="dropdown-item py-2">
+              <i class="fa-solid fa-book me-2" style="width: 20px"></i>
+              My Recipes
+            </router-link>
+          </li>
+          
+          <li><hr class="dropdown-divider my-1" /></li>
+          
+          <li>
+            <a class="dropdown-item py-2 text-danger" href="#" @click.prevent="logout">
+              <i class="fa-solid fa-right-from-bracket me-2" style="width: 20px"></i>
+              Logout
+            </a>
+          </li>
         </ul>
       </li>
     </ul>
@@ -27,14 +57,98 @@
 </template>
 
 <script setup>
-  import { useStore } from "vuex";
-  import { useRouter } from "vue-router";
+import { useStore } from "vuex";
+import { useRouter } from "vue-router";
+import { computed } from "vue";
 
-  const store = useStore();
-  const router = useRouter();
+const store = useStore();
+const router = useRouter();
 
-  const logout = async () => {
+// Get user info from store (optional)
+const userInfo = computed(() => store.state.auth?.user || null);
+
+const logout = async () => {
+  try {
     await store.dispatch("auth/setUserlogout");
-    router.push("/");
-  };
+    router.push("/login");
+  } catch (error) {
+    console.error("Logout error:", error);
+  }
+};
 </script>
+
+<style scoped>
+.profile-dropdown {
+  display: flex;
+  align-items: center;
+}
+
+.nav-link {
+  color: #212529;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  color: #4c4ddc;
+}
+
+.dropdown-menu {
+  min-width: 240px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+  padding-left: 1.25rem;
+}
+
+.dropdown-item.text-danger:hover {
+  background-color: #fff5f5;
+  color: #dc3545 !important;
+}
+
+.dropdown-item i {
+  color: #6c757d;
+  text-align: center;
+}
+
+.dropdown-item.text-danger i {
+  color: #dc3545;
+}
+
+/* Remove default dropdown arrow styling */
+.dropdown-toggle::after {
+  margin-left: 0.5rem;
+}
+
+/* Active route styling */
+.dropdown-item.router-link-active {
+  background-color: #f0f0ff;
+  color: #4c4ddc;
+}
+
+.dropdown-item.router-link-active i {
+  color: #4c4ddc;
+}
+
+/* Mobile responsive */
+@media (max-width: 576px) {
+  .dropdown-menu {
+    min-width: 200px;
+  }
+  
+  .nav-link span {
+    display: none;
+  }
+}
+</style>
