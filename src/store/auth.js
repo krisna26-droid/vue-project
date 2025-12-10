@@ -23,10 +23,96 @@ export default {
         setUserLogin(state, { userData, loginStatus }) {
             state.userLogin = userData;
             state.isLogin = loginStatus;
+        },
+        setUserLogout(state) {
+            state.token = null;
+            state.userLogin = null;
+            state.isLogin = false;
+            state.tokenExpirationDate = null;
+            Cookies.remove("jwt");
+            Cookies.remove("tokenExpirationDate");
+            Cookies.remove("UID");
         }
     },
 
     actions: {
+        // AUTO LOGIN DARI COOKIES
+        async autoLogin({ commit, dispatch }) {
+            const token = Cookies.get('jwt')
+            const uid = Cookies.get('UID')
+            const tokenExpiration = Cookies.get('tokenExpirationDate')
+
+            if (!token || !uid || !tokenExpiration) {
+                return false
+            }
+
+            // Cek apakah token sudah expired
+            const now = new Date().getTime()
+            if (now >= parseInt(tokenExpiration)) {
+                // Token expired, hapus cookies
+                commit('setUserLogout')
+                return false
+            }
+
+            // Set token ke state
+            commit('setToken', {
+                idToken: token,
+                expiresIn: parseInt(tokenExpiration)
+            })
+
+            // Ambil user data
+            try {
+                await dispatch('getUser', uid)
+                return true
+            } catch (error) {
+                console.error('Auto login failed:', error)
+                commit('setUserLogout')
+                return false
+            }
+        },
+
+        // LOGIN ACTION
+        async getLoginData({ commit, dispatch }, payload) {
+            const APIkey = "AIzaSyBmosIarC89gMtqxlZp3hhtJ24qnPSi5-g";
+            const authUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=";
+            
+            try {
+                const { data } = await axios.post(authUrl + APIkey, {
+                    email: payload.email,
+                    password: payload.password,
+                    returnSecureToken: true
+                });
+
+                commit('setToken', {
+                    idToken: data.idToken,
+                    expiresIn: new Date().getTime() + Number.parseInt(data.expiresIn) * 1000
+                });
+
+                await dispatch('getUser', data.localId);
+
+                return { success: true };
+            } catch (error) {
+                console.error("Login error:", error);
+                
+                if (error.response?.data?.error?.message) {
+                    const firebaseError = error.response.data.error.message;
+                    
+                    if (firebaseError.includes("INVALID_LOGIN_CREDENTIALS") || 
+                        firebaseError.includes("INVALID_PASSWORD") ||
+                        firebaseError.includes("EMAIL_NOT_FOUND")) {
+                        throw new Error("Invalid email or password");
+                    } else if (firebaseError.includes("USER_DISABLED")) {
+                        throw new Error("This account has been disabled");
+                    } else {
+                        throw new Error(firebaseError);
+                    }
+                }
+                
+                throw new Error("Login failed. Please try again.");
+            }
+        },
+
+        // REGISTER ACTION
         async getRegisterData({ commit, dispatch }, payload) {
             const APIkey = "AIzaSyBmosIarC89gMtqxlZp3hhtJ24qnPSi5-g";
             const authUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=";
@@ -49,7 +135,7 @@ export default {
                     lastName: payload.lastName,
                     username: payload.username,
                     email: payload.email,
-                    imageLink: payload.imageLink
+                    imageLink: payload.imageLink || ""
                 };
 
                 Cookies.set("UID", newUserData.userId);
@@ -58,10 +144,23 @@ export default {
 
                 return { success: true, data: newUserData };
             } catch (error) {
+                console.error("Registration error:", error);
+                
                 if (error.response?.data?.error?.message) {
-                    throw new Error(error.response.data.error.message);
+                    const firebaseError = error.response.data.error.message;
+                    
+                    if (firebaseError.includes("EMAIL_EXISTS")) {
+                        throw new Error("This email is already registered");
+                    } else if (firebaseError.includes("INVALID_EMAIL")) {
+                        throw new Error("Invalid email format");
+                    } else if (firebaseError.includes("WEAK_PASSWORD")) {
+                        throw new Error("Password must be at least 6 characters");
+                    } else {
+                        throw new Error(firebaseError);
+                    }
                 }
-                throw error;
+                
+                throw new Error("Registration failed. Please try again.");
             }
         },
     
@@ -81,33 +180,48 @@ export default {
 
                 return { success: true, data };
             } catch (error) {
+                console.error("Database save error:", error.response?.data || error.message);
+                
                 if (error.response?.status === 401) {
-                    throw new Error("Database permission denied. Please check Firebase Rules.");
+                    throw new Error("Database permission denied. Check Firebase Rules.");
                 }
-                throw error;
+                
+                throw new Error("Failed to save user data");
             }
         },
 
-        async getUser({ commit }, payload) {
+        async getUser({ commit, state }, userId) {
+            const databaseURL = "https://vue-js-project-53d71-default-rtdb.firebaseio.com";
+            
             try {
                 const { data } = await axios.get(
-                    `https://vue-js-project-53d71-default-rtdb.firebaseio.com/user.json`
+                    `${databaseURL}/user.json?auth=${state.token}`
                 );
                 
+                if (!data) {
+                    throw new Error("No user data found");
+                }
+
                 for (let key in data) {
-                    if (data[key].userId === payload) {
+                    if (data[key].userId === userId) {
                         Cookies.set("UID", data[key].userId);
                         commit("setUserLogin", { 
                             userData: data[key], 
                             loginStatus: true 
                         });
-                        break;
+                        return;
                     }
                 }
+
+                throw new Error("User not found in database");
             } catch (error) {
                 console.error("Error fetching user:", error);
-                throw error;
+                throw new Error("Failed to fetch user data");
             }
+        },
+
+        logout({ commit }) {
+            commit('setUserLogout');
         }
     },
 

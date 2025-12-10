@@ -19,9 +19,22 @@
           <li class="dropdown-item">Favorited Recipes</li>
           <li class="dropdown-item">My Recipes</li>
           <li><hr class="dropdown-divider" /></li>
-          <li class="dropdown-item">Logout</li>
+          <li class="dropdown-item" @click="logout">Logout</li>
         </ul>
       </li>
     </ul>
   </div>
 </template>
+
+<script setup>
+  import { useStore } from "vuex";
+  import { useRouter } from "vue-router";
+
+  const store = useStore();
+  const router = useRouter();
+
+  const logout = async () => {
+    await store.dispatch("auth/setUserlogout");
+    router.push("/");
+  };
+</script>

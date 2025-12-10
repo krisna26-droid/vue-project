@@ -37,8 +37,12 @@
         </div>
 
         <!-- Button -->
-        <button type="submit" class="btn btn-login w-100 mt-3 py-2">
-          Log In
+        <button 
+          type="submit" 
+          class="btn btn-login w-100 mt-3 py-2"
+          :disabled="isLoading"
+        >
+          {{ isLoading ? 'Logging in...' : 'Log In' }}
         </button>
       </form>
 
@@ -59,36 +63,48 @@
   </div>
 </template>
 
-<script>
-import { reactive } from 'vue';
+<script setup>
+import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 
-export default {
-  setup() {
-    const router = useRouter();
-    const store = useStore();
+const router = useRouter();
+const store = useStore();
 
-    const loginData = reactive({
-      email: '',
-      password: '',
-      isLogin: true
-    });
+const loginData = reactive({
+  email: '',
+  password: '',
+  isLogin: true
+});
 
-    const login = async () => {
-      try {
-        await store.dispatch("auth/getLoginData", loginData);
-        router.push("/");
-      } catch (error) {
-        console.error("Login error:", error);
-        alert("Login failed. Please check your credentials.");
-      }
-    };
+const isLoading = ref(false);
 
-    return {
-      loginData,
-      login
-    };
+const login = async () => {
+  if (!loginData.email || !loginData.password) {
+    alert("Please fill in all fields");
+    return;
+  }
+
+  try {
+    isLoading.value = true;
+    
+    await store.dispatch("auth/getLoginData", loginData);
+    
+    router.push("/");
+  } catch (error) {
+    console.error("Login error:", error);
+    
+    let errorMessage = "Login failed. ";
+    
+    if (error.message) {
+      errorMessage += error.message;
+    } else {
+      errorMessage += "Please check your credentials.";
+    }
+    
+    alert(errorMessage);
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>
@@ -140,8 +156,13 @@ export default {
   transition: 0.2s ease-in-out;
 }
 
-.btn-login:hover {
+.btn-login:hover:not(:disabled) {
   background-color: #393acc;
+}
+
+.btn-login:disabled {
+  background-color: #9999dc;
+  cursor: not-allowed;
 }
 
 /* SIGNUP LINK */

@@ -13,7 +13,7 @@
             <label class="form-label fw-semibold">First Name</label>
             <input 
               type="text"
-              class="form-control"
+              class="form-control input-modern"
               placeholder="Ex : Jack"
               v-model="signupData.firstName"
               required
@@ -24,7 +24,7 @@
             <label class="form-label fw-semibold">Last Name</label>
             <input 
               type="text"
-              class="form-control"
+              class="form-control input-modern"
               placeholder="Ex : Sparrow"
               v-model="signupData.lastName"
               required
@@ -36,7 +36,7 @@
           <label class="form-label fw-semibold">Username</label>
           <input 
             type="text"
-            class="form-control"
+            class="form-control input-modern"
             placeholder="Your Username"
             v-model="signupData.username"
             required
@@ -47,7 +47,7 @@
           <label class="form-label fw-semibold">Email</label>
           <input 
             type="email"
-            class="form-control"
+            class="form-control input-modern"
             placeholder="Your Email"
             v-model="signupData.email"
             required
@@ -58,7 +58,7 @@
           <label class="form-label fw-semibold">Password</label>
           <input 
             type="password"
-            class="form-control"
+            class="form-control input-modern"
             placeholder="Your Password"
             v-model="signupData.password" 
             @input="passwordCheck"
@@ -73,7 +73,7 @@
           <label class="form-label fw-semibold">Confirm Password</label>
           <input 
             type="password"
-            class="form-control"
+            class="form-control input-modern"
             placeholder="Confirm Your Password"
             v-model="signupData.confirmPassword"
             @input="confirmationPasswordCheck"
@@ -91,7 +91,7 @@
           <label class="form-label fw-semibold">Profile Photo</label>
           <input 
             type="file" 
-            class="form-control" 
+            class="form-control input-modern" 
             accept="image/*"
             @change="checkImage" 
           />
@@ -242,8 +242,10 @@ const register = async () => {
       } else {
         errorMessage += firebaseError;
       }
+    } else if (error.message) {
+      errorMessage += error.message;
     } else {
-      errorMessage += error.message || "Please try again.";
+      errorMessage += "Please try again.";
     }
     
     alert(errorMessage);
@@ -277,6 +279,18 @@ const goToLogin = () => router.push("/login");
   width: 90px;
 }
 
+.input-modern {
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid #dcdcdc;
+  transition: all 0.25s ease;
+}
+
+.input-modern:focus {
+  border-color: #4c4ddc;
+  box-shadow: 0 0 0 3px rgba(76, 77, 220, 0.15);
+}
+
 .btn-signup {
   background-color: #4c4ddc;
   color: white;
@@ -285,7 +299,7 @@ const goToLogin = () => router.push("/login");
   transition: 0.2s ease-in-out;
 }
 
-.btn-signup:hover {
+.btn-signup:hover:not(:disabled) {
   background-color: #393acc;
 }
 
