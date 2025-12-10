@@ -19,7 +19,8 @@
             type="email" 
             class="form-control input-modern"
             placeholder="Enter your email"
-            v-model="email"
+            label="Email"
+            v-model="loginData.email"
           />
         </div>
 
@@ -30,7 +31,7 @@
             type="password" 
             class="form-control input-modern"
             placeholder="Enter your password"
-            v-model="password"
+            v-model="loginData.password"
           />
         </div>
 
@@ -58,6 +59,15 @@
 </template>
 
 <script>
+import {reactive} from 'vue';
+
+const loginData = reactive({
+  email: '',
+  password: '',
+  isLogin: true
+});
+
+
 export default {
   data() {
     return {

@@ -6,20 +6,58 @@
     <!-- Component SearchMenu -->
     <SearchMenu />
 
-    <!-- Component SignupMenu -->
-    <SignupMenu />
+    <!-- Component SignupMenu or ProfileMenu -->
+    <component :is="components[menuComponent]"></component>
   </div>
 </template>
 
 <script>
+import { computed, ref, watch } from "vue";
+import { useStore } from "vuex";
 import SearchMenu from "./SearchMenu.vue";
 import SignupMenu from "./SignupMenu.vue";
+import ProfileMenu from "./ProfileMenu.vue";
 
 export default {
   name: "HeaderNavbar",
   components: {
     SearchMenu,
     SignupMenu,
+    ProfileMenu,
+  },
+  setup() {
+    const menuComponent = ref("signup-menu");
+    const store = useStore();
+
+    const components = {
+      'signup-menu': SignupMenu,
+      'profile-menu': ProfileMenu,
+    };
+
+    const getToken = computed(() => {
+      return store.state.auth.token;
+    });
+
+    // Set initial component based on token
+    if (getToken.value) {
+      menuComponent.value = "profile-menu";
+    } else {
+      menuComponent.value = "signup-menu";
+    }
+
+    // Watch token changes
+    watch(getToken, (newValue) => {
+      if (newValue) {
+        menuComponent.value = "profile-menu";
+      } else {
+        menuComponent.value = "signup-menu";
+      }
+    });
+
+    return {
+      menuComponent,
+      components,
+    };
   },
 };
 </script>

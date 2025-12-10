@@ -230,11 +230,26 @@ const register = async () => {
   console.log("=== SENDING TO FIREBASE ===");
   
   try {
+    isSubmitting.value = true;
+    
+    // Step 1: Register user
     await store.dispatch("auth/getRegisterData", signupData);
-    alert("Registration successful!");
-    router.push("/login");
+    console.log("Registration successful!");
+    
+    // Step 2: Login otomatis setelah register berhasil
+    console.log("=== AUTO LOGIN ===");
+    await store.dispatch("auth/login", {
+      email: signupData.email,
+      password: signupData.password
+    });
+    console.log("Auto login successful!");
+    
+    // Step 3: Redirect ke homepage
+    // Ganti "/" dengan route homepage Anda (misal: "/home" atau "/dashboard")
+    router.push("/");
+    
   } catch (error) {
-    console.error("Registration failed:", error);
+    console.error("Registration/Login failed:", error);
     
     let errorMessage = "Registration failed. ";
     
@@ -255,6 +270,8 @@ const register = async () => {
     }
     
     alert(errorMessage);
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
@@ -296,6 +313,11 @@ const goToLogin = () => router.push("/login");
 
 .btn-signup:hover {
   background-color: #393acc;
+}
+
+.btn-signup:disabled {
+  background-color: #9999dc;
+  cursor: not-allowed;
 }
 
 /* LINK */
