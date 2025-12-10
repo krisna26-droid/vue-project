@@ -11,7 +11,7 @@
             class="form-control"
             :type="type"
             :id="identity"
-            :placeholder="Placeholder"
+            :placeholder="placeholder"
             :readonly="readonly === '1'"
             :value="modelValue"
             @input="$emit('update:modelValue', $event.target.value)"
@@ -28,26 +28,26 @@
             />
 
             <!-- Preview jika ada -->
-            <!-- <img
+            <img
                 v-if="preview"
                 :src="preview"
                 alt="Preview"
                 class="mt-3"
                 style="max-width: 150px; border-radius: 8px;"
-            /> -->
+            />
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue';
+import { ref } from 'vue';
 
 const props = defineProps({
     modelValue: { type: [String, Number, File], default: '' },
     type: { type: String, required: true },
     label: { type: String, required: true },
     identity: { type: String, required: true },
-    Placeholder: { type: String, required: false },
+    placeholder: { type: String, required: false },
     readonly: { type: String, default: '0' },
     isImage: { type: Boolean, default: false },
 });
@@ -59,8 +59,8 @@ const preview = ref(null);
 const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-        emit("update:modelValue", file); // kirim file ke parent
-        preview.value = URL.createObjectURL(file); // buat preview
+        emit("update:modelValue", file);
+        preview.value = URL.createObjectURL(file);
     }
 };
 </script>

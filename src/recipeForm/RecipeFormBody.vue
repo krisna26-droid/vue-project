@@ -12,6 +12,7 @@
               type="file"
               identity="recipeImage"
               label="Photo Recipe"
+              :isImage="true"
             />
           </div>
           <!-- Image End -->
@@ -23,7 +24,7 @@
               type="text"
               identity="recipeTitle"
               placeholder="Give your recipe a title"
-              label="Photo Recipe"
+              label="Recipe Title"
             />
           </div>
           <!-- Recipe Title End -->
@@ -42,7 +43,11 @@
           <!-- Recipe Category Start -->
           <div class="mb-3">
             <!-- 4 -->
+            <label class="fw-semibold">
+              Recipe Category <span style="color: #cb3a31">*</span>
+            </label>
             <BaseSelect
+              id="recipeCategory"
               :data="['Breakfast', 'Lunch', 'Dinner', 'Meals', 'Snacks']"
             />
           </div>
@@ -111,6 +116,7 @@
               <BaseInput
                 type="text"
                 identity="ingredient"
+                label="Ingredient"
                 placeholder="Ex: 1 cup sugar"
               />
             </div>
@@ -149,7 +155,8 @@
               <BaseInput
                 type="text"
                 identity="direction"
-                placeholder="Ex: 1 cup sugar"
+                label="Direction"
+                placeholder="Ex: Preheat oven to 350°F"
               />
             </div>
             <!-- Direction Input End -->
@@ -175,14 +182,14 @@
       <div class="border-top py-3 d-flex my-4 justify-content-end">
         <!-- Cancel Button Start -->
         <!-- 12 -->
-        <BaseButton class="cancel-btn px-3 py-2 ms-1">
+        <BaseButton class="cancel-btn px-3 py-2 ms-1" type="button">
           Cancel
         </BaseButton>
         <!-- Cancel Button End -->
 
         <!-- Submit Button Start -->
         <!-- 13 -->
-        <BaseButton class="submit-recipe-btn px-3 py-2 ms-1">
+        <BaseButton class="submit-recipe-btn px-3 py-2 ms-1" type="submit">
           Submit
         </BaseButton>
         <!-- Submit Button End -->
@@ -193,8 +200,8 @@
 </template>
 
 <script setup>
-import BaseInput from '../UI/BaseInput.vue';
-import BaseTextArea from '../UI/BaseTextArea.vue';
-import BaseSelect from '../UI/BaseSelect.vue';
-import BaseButton from '../UI/BaseButton.vue';
+import BaseInput from '@/components/UI/BaseInput.vue';
+import BaseTextArea from '@/components/UI/BaseTextArea.vue';
+import BaseSelect from '@/components/UI/BaseSelect.vue';
+import BaseButton from '@/components/UI/BaseButton.vue';
 </script>
