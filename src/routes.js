@@ -4,28 +4,8 @@ import SignupPage from './components/pages/SignupPage.vue';
 import DetailPage from './components/pages/DetailPage.vue';
 
 export const routes = [
-  { 
-    path: '/', 
-    name: 'homePage', 
-    component: HomePage,
-    meta: { requiresAuth: true }
-  },
-  { 
-    path: '/login', 
-    name: 'loginPage', 
-    component: LoginPage,
-    meta: { requiresGuest: true }
-  },
-  { 
-    path: '/signup', 
-    name: 'signupPage', 
-    component: SignupPage,
-    meta: { requiresGuest: true }
-  },
-  { 
-    path: '/recipe/:id', 
-    name: 'detailPage', 
-    component: DetailPage,
-    meta: { requiresAuth: true }
-  }
+  { path: '/', name: 'homePage', component: HomePage },
+  { path: '/login', name: 'loginPage', component: LoginPage },
+  { path: '/signup', name: 'signupPage', component: SignupPage },
+  { path: '/recipe/:id', name: 'detailPage', component: DetailPage }
 ];

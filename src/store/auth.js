@@ -36,42 +36,7 @@ export default {
     },
 
     actions: {
-        // AUTO LOGIN DARI COOKIES
-        async autoLogin({ commit, dispatch }) {
-            const token = Cookies.get('jwt')
-            const uid = Cookies.get('UID')
-            const tokenExpiration = Cookies.get('tokenExpirationDate')
-
-            if (!token || !uid || !tokenExpiration) {
-                return false
-            }
-
-            // Cek apakah token sudah expired
-            const now = new Date().getTime()
-            if (now >= parseInt(tokenExpiration)) {
-                // Token expired, hapus cookies
-                commit('setUserLogout')
-                return false
-            }
-
-            // Set token ke state
-            commit('setToken', {
-                idToken: token,
-                expiresIn: parseInt(tokenExpiration)
-            })
-
-            // Ambil user data
-            try {
-                await dispatch('getUser', uid)
-                return true
-            } catch (error) {
-                console.error('Auto login failed:', error)
-                commit('setUserLogout')
-                return false
-            }
-        },
-
-        // LOGIN ACTION
+        // ACTION UNTUK LOGIN - INI YANG DITAMBAHKAN
         async getLoginData({ commit, dispatch }, payload) {
             const APIkey = "AIzaSyBmosIarC89gMtqxlZp3hhtJ24qnPSi5-g";
             const authUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=";
@@ -112,7 +77,7 @@ export default {
             }
         },
 
-        // REGISTER ACTION
+        // ACTION UNTUK REGISTER - YANG SUDAH ADA, DIPERBAIKI
         async getRegisterData({ commit, dispatch }, payload) {
             const APIkey = "AIzaSyBmosIarC89gMtqxlZp3hhtJ24qnPSi5-g";
             const authUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=";

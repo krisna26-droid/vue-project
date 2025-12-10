@@ -1,36 +1,23 @@
 <template>
   <div>
-    <WebHeader v-if="isAuthenticated" />
+    <WebHeader />
     <router-view></router-view>
-    <WebFooter v-if="isAuthenticated" />
+    <WebFooter />
   </div>
 </template>
 
-<script setup>
-import { computed, onMounted } from 'vue'
-import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
-import WebHeader from "./components/header/WebHeader.vue"
-import WebFooter from "./components/footer/WebFooter.vue"
+<script>
+import WebHeader from "./components/header/WebHeader.vue";
+import HomePage from "./components/pages/HomePage.vue";
+import WebFooter from "./components/footer/WebFooter.vue";
 
-const store = useStore()
-const router = useRouter()
-
-const isAuthenticated = computed(() => store.getters['auth/isAuthenticated'])
-
-onMounted(async () => {
-  // Coba auto login saat app dimuat
-  try {
-    await store.dispatch('auth/autoLogin')
-  } catch (error) {
-    console.error('Auto login error:', error)
-    
-    // Jika gagal dan sedang di halaman yang butuh auth, redirect ke login
-    if (router.currentRoute.value.meta.requiresAuth) {
-      router.push('/login')
-    }
-  }
-})
+export default {
+  name: "App",
+  components: {
+    WebHeader,
+    HomePage,
+    WebFooter,
+  },
+};  
 </script>
-
 <style></style>
