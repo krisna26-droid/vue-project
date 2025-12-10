@@ -16,6 +16,7 @@
               class="form-control"
               placeholder="Ex : Jack"
               v-model="signupData.firstName"
+              required
             />
           </div>
 
@@ -26,6 +27,7 @@
               class="form-control"
               placeholder="Ex : Sparrow"
               v-model="signupData.lastName"
+              required
             />
           </div>
         </div>
@@ -37,6 +39,7 @@
             class="form-control"
             placeholder="Your Username"
             v-model="signupData.username"
+            required
           />
         </div>
 
@@ -47,6 +50,7 @@
             class="form-control"
             placeholder="Your Email"
             v-model="signupData.email"
+            required
           />
         </div>
 
@@ -58,8 +62,9 @@
             placeholder="Your Password"
             v-model="signupData.password" 
             @input="passwordCheck"
+            required
           />
-          <p class="text-danger mt-1 fw-medium" style="font-size:11px" :style="{ display: passwordStatusDisplay }">
+          <p v-show="passwordStatusDisplay" class="text-danger mt-1 fw-medium" style="font-size:11px">
             The password must be at least 8 characters long and contain a mix of letters, numbers, and special characters.
           </p>
         </div>
@@ -72,16 +77,16 @@
             placeholder="Confirm Your Password"
             v-model="signupData.confirmPassword"
             @input="confirmationPasswordCheck"
+            required
           />
-          <p class="text-danger mt-1 fw-medium" style="font-size: 11px" :style="{ display: confirmationPasswordDoesNotMatch }">
+          <p v-show="confirmationPasswordDoesNotMatch" class="text-danger mt-1 fw-medium" style="font-size: 11px">
             Passwords do not match.
           </p>
-          <p class="text-success mt-1 fw-medium" style="font-size: 11px" :style="{ display: confirmationPasswordMatch }">
+          <p v-show="confirmationPasswordMatch" class="text-success mt-1 fw-medium" style="font-size: 11px">
             Passwords match.
           </p>
         </div>
 
-        <!-- FOTO PROFIL -->
         <div class="my-4">
           <label class="form-label fw-semibold">Profile Photo</label>
           <input 
@@ -93,7 +98,11 @@
 
           <div class="position-relative d-flex justify-content-center mt-3">
             <div class="profile-photo-wrapper">
-              <img :src="signupData.imageLink || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Crect fill=%22%23ddd%22 width=%22120%22 height=%22120%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3EPhoto%3C/text%3E%3C/svg%3E'" class="profile-photo" alt="Profile" />
+              <img 
+                :src="signupData.imageLink || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Crect fill=%22%23ddd%22 width=%22120%22 height=%22120%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3EPhoto%3C/text%3E%3C/svg%3E'" 
+                class="profile-photo" 
+                alt="Profile" 
+              />
             </div>
 
             <div class="camera-icon position-absolute">
@@ -140,12 +149,11 @@ const signupData = reactive({
   imageLink: "",
 });
 
-const passwordStatusDisplay = ref("none");
-const confirmationPasswordDoesNotMatch = ref("none");
-const confirmationPasswordMatch = ref("none");
+const passwordStatusDisplay = ref(false);
+const confirmationPasswordDoesNotMatch = ref(false);
+const confirmationPasswordMatch = ref(false);
 const isSubmitting = ref(false);
 
-// Password validation regex: at least 8 chars, contains letters, numbers, and special characters
 const isPasswordValid = (password) => {
   if (password.length < 8) return false;
   const hasLetter = /[a-zA-Z]/.test(password);
@@ -154,14 +162,9 @@ const isPasswordValid = (password) => {
   return hasLetter && hasNumber && hasSpecial;
 };
 
-const passwordCheck = (value) => {
-  if (!isPasswordValid(signupData.password)) {
-    passwordStatusDisplay.value = "block";
-  } else {
-    passwordStatusDisplay.value = "none";
-  }
+const passwordCheck = () => {
+  passwordStatusDisplay.value = !isPasswordValid(signupData.password);
   
-  // Recheck confirmation password if it's already filled
   if (signupData.confirmPassword) {
     confirmationPasswordCheck();
   }
@@ -169,19 +172,19 @@ const passwordCheck = (value) => {
 
 const confirmationPasswordCheck = () => {
   if (signupData.confirmPassword === "") {
-    confirmationPasswordDoesNotMatch.value = "none";
-    confirmationPasswordMatch.value = "none";
+    confirmationPasswordDoesNotMatch.value = false;
+    confirmationPasswordMatch.value = false;
     return; 
   }
   
   if (signupData.password !== signupData.confirmPassword) {
-    confirmationPasswordDoesNotMatch.value = "block";
-    confirmationPasswordMatch.value = "none";
+    confirmationPasswordDoesNotMatch.value = true;
+    confirmationPasswordMatch.value = false;
     return;
   }
 
-  confirmationPasswordDoesNotMatch.value = "none";
-  confirmationPasswordMatch.value = "block";
+  confirmationPasswordDoesNotMatch.value = false;
+  confirmationPasswordMatch.value = true;
 };
 
 const checkImage = (e) => {
@@ -197,59 +200,33 @@ const checkImage = (e) => {
 };
 
 const register = async () => {
-  // Debug: Log semua data
-  console.log("=== FORM DATA ===");
-  console.log("First Name:", signupData.firstName);
-  console.log("Last Name:", signupData.lastName);
-  console.log("Username:", signupData.username);
-  console.log("Email:", signupData.email);
-  console.log("Password:", signupData.password ? "***filled***" : "EMPTY");
-  console.log("Confirm Password:", signupData.confirmPassword ? "***filled***" : "EMPTY");
-  console.log("Image Link:", signupData.imageLink ? "Image loaded" : "No image");
-  
-  // Validate all fields
   if (!signupData.firstName || !signupData.lastName || !signupData.username || !signupData.email) {
     alert("Please fill in all required fields");
     return;
   }
 
-  // Validate password
   if (!isPasswordValid(signupData.password)) {
-    passwordStatusDisplay.value = "block";
+    passwordStatusDisplay.value = true;
     alert("Password must be at least 8 characters and contain letters, numbers, and special characters");
     return;
   }
 
-  // Check if passwords match
   if (signupData.password !== signupData.confirmPassword) {
-    confirmationPasswordDoesNotMatch.value = "block";
+    confirmationPasswordDoesNotMatch.value = true;
     alert("Passwords do not match");
     return;
   }
-
-  console.log("=== SENDING TO FIREBASE ===");
   
   try {
     isSubmitting.value = true;
     
-    // Step 1: Register user
     await store.dispatch("auth/getRegisterData", signupData);
-    console.log("Registration successful!");
     
-    // Step 2: Login otomatis setelah register berhasil
-    console.log("=== AUTO LOGIN ===");
-    await store.dispatch("auth/login", {
-      email: signupData.email,
-      password: signupData.password
-    });
-    console.log("Auto login successful!");
-    
-    // Step 3: Redirect ke homepage
-    // Ganti "/" dengan route homepage Anda (misal: "/home" atau "/dashboard")
-    router.push("/");
+    alert("Registration successful! Please login with your credentials.");
+    router.push("/login");
     
   } catch (error) {
-    console.error("Registration/Login failed:", error);
+    console.error("Registration failed:", error);
     
     let errorMessage = "Registration failed. ";
     
@@ -279,7 +256,6 @@ const goToLogin = () => router.push("/login");
 </script>
 
 <style scoped>
-/* WRAPPER UTAMA */
 .signup-wrapper {
   background-color: #f5f5f5;
   min-height: 100vh;
@@ -297,12 +273,10 @@ const goToLogin = () => router.push("/login");
   max-width: 620px;
 }
 
-/* LOGO */
 .signup-logo {
   width: 90px;
 }
 
-/* TOMBOL */
 .btn-signup {
   background-color: #4c4ddc;
   color: white;
@@ -320,7 +294,6 @@ const goToLogin = () => router.push("/login");
   cursor: not-allowed;
 }
 
-/* LINK */
 .login-link {
   color: #4c4ddc;
   cursor: pointer;
@@ -331,7 +304,6 @@ const goToLogin = () => router.push("/login");
   text-decoration: underline;
 }
 
-/* FOTO PROFIL BULAT & RAPI */
 .profile-photo-wrapper {
   position: relative;
   width: 120px;
@@ -348,7 +320,6 @@ const goToLogin = () => router.push("/login");
   object-fit: cover;
 }
 
-/* ICON CAMERA */
 .camera-icon {
   bottom: 0;
   right: 32%;

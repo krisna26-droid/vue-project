@@ -10,7 +10,7 @@
       </div>
 
       <!-- Form -->
-      <form class="mt-4" @submit.prevent="handleLogin">
+      <form class="mt-4" @submit.prevent="login">
 
         <!-- Email -->
         <div class="my-3">
@@ -19,8 +19,8 @@
             type="email" 
             class="form-control input-modern"
             placeholder="Enter your email"
-            label="Email"
             v-model="loginData.email"
+            required
           />
         </div>
 
@@ -32,6 +32,7 @@
             class="form-control input-modern"
             placeholder="Enter your password"
             v-model="loginData.password"
+            required
           />
         </div>
 
@@ -44,7 +45,7 @@
       <!-- Signup Link -->
       <div class="text-center mt-4">
         <p class="fw-semibold">
-          Don’t have an account?
+          Don't have an account?
           <router-link 
             :to="{ name: 'signupPage' }" 
             class="signup-link"
@@ -59,28 +60,35 @@
 </template>
 
 <script>
-import {reactive} from 'vue';
-
-const loginData = reactive({
-  email: '',
-  password: '',
-  isLogin: true
-});
-
+import { reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 
 export default {
-  data() {
-    return {
-      email: "",
-      password: ""
+  setup() {
+    const router = useRouter();
+    const store = useStore();
+
+    const loginData = reactive({
+      email: '',
+      password: '',
+      isLogin: true
+    });
+
+    const login = async () => {
+      try {
+        await store.dispatch("auth/getLoginData", loginData);
+        router.push("/");
+      } catch (error) {
+        console.error("Login error:", error);
+        alert("Login failed. Please check your credentials.");
+      }
     };
-  },
-  methods: {
-    handleLogin() {
-      console.log("Login Email:", this.email);
-      console.log("Login Password:", this.password);
-      this.$router.push({ name: "homePage" });
-    }
+
+    return {
+      loginData,
+      login
+    };
   }
 };
 </script>
