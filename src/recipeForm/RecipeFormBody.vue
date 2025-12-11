@@ -6,8 +6,8 @@
         <div>
           <div class="mb-3">
             <BaseInput type="file" identity="recipeImage" label="Photo Recipe" @input="checkImage" />
-            <div>
-              <img :src="recipeData.imageLink" :alt="recipeData.name" class="image"></img>
+            <div v-if="recipeData.imageLink">
+              <img :src="recipeData.imageLink" :alt="recipeData.name" class="image" />
             </div>
           </div>
           <div class="mb-3">
@@ -26,13 +26,13 @@
         <p class="my-3 fs-5 fw-semibold">Time Setting</p>
         <div>
           <div class="mb-3">
-            <BaseInput type="number" identity="prepTime" placeholder="0" label="Prep Time" v-model="recipeData.prepTime" />
+            <BaseInput type="number" identity="prepTime" placeholder="0" label="Prep Time" v-model="recipeData.prepTime" @input="calculateTotalTime" />
           </div>
           <div class="mb-3">
-            <BaseInput type="number" identity="cookTime" placeholder="0" label="Cook Time" v-model="recipeData.cookTime" />
+            <BaseInput type="number" identity="cookTime" placeholder="0" label="Cook Time" v-model="recipeData.cookTime" @input="calculateTotalTime" />
           </div>
           <div class="mb-3">
-            <BaseInput type="number" identity="totalTime" placeholder="0" label="Total Time" v-model="recipeData.totalTime" @totalTimeFocus="totalTime" readonly="1" />
+            <BaseInput type="number" identity="totalTime" placeholder="0" label="Total Time" v-model="recipeData.totalTime" readonly />
           </div>
         </div>
       </div>
@@ -71,8 +71,8 @@
         </BaseButton>
       </div>
       <div class="border-top py-3 d-flex my-4 justify-content-end">
-        <BaseButton class="cancel-btn px-3 py-2 ms-1" type="button">Cancel</BaseButton>
-        <BaseButton class="submit-recipe-btn px-3 py-2 ms-1" type="submit">Submit</BaseButton>
+        <BaseButton class="cancel-btn px-3 py-2 ms-1" type="button" @click="router.push('/user/user-recipe')">Cancel</BaseButton>
+        <BaseButton class="submit-recipe-btn px-3 py-2 ms-1" type="submit">{{ isEdit ? 'Update' : 'Submit' }}</BaseButton>
       </div>
     </form>
   </li>
@@ -83,7 +83,7 @@ import BaseInput from '@/components/ui/BaseInput.vue';
 import BaseTextArea from '@/components/ui/BaseTextArea.vue';
 import BaseSelect from '@/components/ui/BaseSelect.vue';
 import BaseButton from '@/components/ui/BaseButton.vue';
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref, watch, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
@@ -94,7 +94,8 @@ const props = defineProps({
 const store = useStore();
 const router = useRouter();
 
-const recipeData = reactive({
+let recipeData = reactive({
+  id: null, // ✅ Tambahkan id
   imageLink: '',
   name: '',
   description: '',
@@ -104,19 +105,54 @@ const recipeData = reactive({
   totalTime: 0,
   ingredients: [],
   directions: [],
+  username: '',
+  userId: '',
+  createdAt: null,
+  likes: [],
 });
 
 const ingredientCount = ref(1);
 const directionCount = ref(1);
 
-onMounted(() => {
-  if (props.isEdit) {
-    const detail = store.state.recipeDetail;
-    Object.assign(recipeData, detail);
-    ingredientCount.value = recipeData.ingredients.length;
-    directionCount.value = recipeData.directions.length;
-  }
-});
+// ✅ PERBAIKAN: Ambil data dari store menggunakan computed
+const storeRecipeDetail = computed(() => store.state.recipe?.recipeDetail || null);
+
+// ✅ PERBAIKAN: Watch store recipeDetail untuk mode edit
+watch(
+  storeRecipeDetail,
+  (newDetail) => {
+    if (props.isEdit && newDetail) {
+      console.log('Loading recipe data:', newDetail);
+      
+      // Load SEMUA data ke recipeData (termasuk field yang tidak boleh diubah)
+      recipeData.id = newDetail.id; // ✅ PENTING
+      recipeData.imageLink = newDetail.imageLink || '';
+      recipeData.name = newDetail.name || '';
+      recipeData.description = newDetail.description || '';
+      recipeData.category = newDetail.category || '';
+      recipeData.prepTime = newDetail.prepTime || 0;
+      recipeData.cookTime = newDetail.cookTime || 0;
+      recipeData.totalTime = newDetail.totalTime || 0;
+      recipeData.username = newDetail.username || '';
+      recipeData.userId = newDetail.userId || '';
+      recipeData.createdAt = newDetail.createdAt || null;
+      recipeData.likes = newDetail.likes || [];
+      
+      // Load ingredients
+      if (newDetail.ingredients && Array.isArray(newDetail.ingredients)) {
+        recipeData.ingredients = [...newDetail.ingredients];
+        ingredientCount.value = newDetail.ingredients.length;
+      }
+      
+      // Load directions
+      if (newDetail.directions && Array.isArray(newDetail.directions)) {
+        recipeData.directions = [...newDetail.directions];
+        directionCount.value = newDetail.directions.length;
+      }
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 const addIngredient = () => {
   ingredientCount.value++;
@@ -128,6 +164,8 @@ const addDirection = () => {
 
 const checkImage = (e) => {
   const file = e.target.files[0];
+  if (!file) return;
+  
   const reader = new FileReader();
   reader.readAsDataURL(file);
 
@@ -150,13 +188,34 @@ const deleteDirection = (index) => {
   }
 };
 
-const totalTime = () => {
-  recipeData.totalTime = parseInt(recipeData.prepTime) + parseInt(recipeData.cookTime);
+const calculateTotalTime = () => {
+  recipeData.totalTime = parseInt(recipeData.prepTime || 0) + parseInt(recipeData.cookTime || 0);
 };
 
 const addNewRecipe = async () => {
-  await store.dispatch('recipe/addNewRecipe', recipeData);
-  router.push('/user/user-recipe');
+  // Filter out empty ingredients and directions
+  const cleanedData = {
+    ...recipeData,
+    ingredients: recipeData.ingredients.filter(i => i && i.trim() !== ''),
+    directions: recipeData.directions.filter(d => d && d.trim() !== ''),
+  };
+
+  console.log('Submitting recipe:', cleanedData);
+
+  try {
+    if (props.isEdit) {
+      await store.dispatch('recipe/updateRecipe', cleanedData);
+      alert('Recipe updated successfully!');
+    } else {
+      await store.dispatch('recipe/addNewRecipe', cleanedData);
+      alert('Recipe added successfully!');
+    }
+    
+    router.push('/user/user-recipe');
+  } catch (error) {
+    console.error('Error saving recipe:', error);
+    alert('Failed to save recipe. Please try again.');
+  }
 };
 </script>
 
@@ -166,5 +225,43 @@ const addNewRecipe = async () => {
   height: 100px;
   object-fit: cover;
   border-radius: 50%;
+  margin-top: 10px;
+}
+
+.new-ingredient-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.new-ingredient-btn:hover {
+  background-color: #218838;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.cancel-btn:hover {
+  background-color: #5a6268;
+}
+
+.submit-recipe-btn {
+  background-color: #cb3a31;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.submit-recipe-btn:hover {
+  background-color: #a52f28;
+}
+
+.delete-ingredient:hover {
+  opacity: 0.7;
 }
 </style>

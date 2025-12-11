@@ -14,9 +14,9 @@
         </a>
         
         <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-          <!-- User Info Section (Optional) -->
+          <!-- User Info Section -->
           <li class="px-3 py-2 border-bottom" v-if="userInfo">
-            <p class="mb-0 fw-semibold small">{{ userInfo.name }}</p>
+            <p class="mb-0 fw-semibold small">{{ userInfo.username || userInfo.firstName }}</p>
             <p class="mb-0 text-muted" style="font-size: 0.75rem">{{ userInfo.email }}</p>
           </li>
           
@@ -45,7 +45,7 @@
           <li><hr class="dropdown-divider my-1" /></li>
           
           <li>
-            <a class="dropdown-item py-2 text-danger" href="#" @click.prevent="logout">
+            <a class="dropdown-item py-2 text-danger" href="#" @click.prevent="handleLogout">
               <i class="fa-solid fa-right-from-bracket me-2" style="width: 20px"></i>
               Logout
             </a>
@@ -64,15 +64,21 @@ import { computed } from "vue";
 const store = useStore();
 const router = useRouter();
 
-// Get user info from store (optional)
-const userInfo = computed(() => store.state.auth?.user || null);
+// ✅ Get user info from store
+const userInfo = computed(() => store.state.auth?.userLogin || null);
 
-const logout = async () => {
+// ✅ PERBAIKAN: Nama action yang benar adalah 'auth/logout' bukan 'auth/setUserlogout'
+const handleLogout = async () => {
   try {
-    await store.dispatch("auth/setUserlogout");
+    // Dispatch action logout
+    await store.dispatch("auth/logout");
+    
+    // Redirect ke login page
     router.push("/login");
   } catch (error) {
     console.error("Logout error:", error);
+    // Tetap redirect meskipun ada error
+    router.push("/login");
   }
 };
 </script>
@@ -87,10 +93,12 @@ const logout = async () => {
   color: #212529;
   text-decoration: none;
   transition: all 0.2s ease;
+  border-radius: 8px;
 }
 
 .nav-link:hover {
   color: #4c4ddc;
+  background-color: #f8f9fa;
 }
 
 .dropdown-menu {
@@ -98,6 +106,7 @@ const logout = async () => {
   border: 1px solid rgba(0, 0, 0, 0.08);
   padding: 0.5rem 0;
   margin-top: 0.5rem;
+  border-radius: 12px;
 }
 
 .dropdown-item {
@@ -105,6 +114,8 @@ const logout = async () => {
   align-items: center;
   padding: 0.5rem 1rem;
   transition: all 0.2s ease;
+  border-radius: 6px;
+  margin: 0 0.25rem;
 }
 
 .dropdown-item:hover {
@@ -139,6 +150,11 @@ const logout = async () => {
 
 .dropdown-item.router-link-active i {
   color: #4c4ddc;
+}
+
+/* User info section */
+.border-bottom {
+  border-color: rgba(0, 0, 0, 0.08) !important;
 }
 
 /* Mobile responsive */

@@ -11,29 +11,29 @@
             <slot></slot>
           </div>
           <div class="d-flex">
-            <img 
-              :src="recipe.imageLink" 
-              :alt="recipe.name" 
-              width="90" 
-              height="80" 
-              class="rounded" 
+            <img
+              :src="recipe.imageLink"
+              :alt="recipe.name"
+              width="90"
+              height="80"
+              class="rounded"
               style="object-fit: cover"
-            >
+            />
           </div>
         </div>
         <div class="d-flex justify-content-between mt-3 pt-3 border-top">
-          <button 
-            class="btn delete-btn px-3 py-2 rounded-pill" 
+          <button
+            class="btn delete-btn px-3 py-2 rounded-pill"
             @click="$emit('delete')"
           >
             {{ buttonName[0] }}
           </button>
-          <button 
+          <router-link
+            :to="'/recipe/edit/' + recipe.id"
             class="btn edit-btn px-3 py-2 rounded-pill"
-            @click="$emit('edit')"
           >
             {{ buttonName[1] }}
-          </button>
+          </router-link>
         </div>
       </div>
     </div>
@@ -44,14 +44,14 @@
 defineProps({
   recipe: {
     type: Object,
-    required: true
+    required: true,
   },
   buttonName: {
     type: Array, // ✅ PERBAIKAN: Array (huruf besar A)
-    required: true
-  }
+    required: true,
+  },
 });
 
 // ✅ PERBAIKAN: Deklarasikan emits
-defineEmits(['delete', 'edit']);
+defineEmits(["delete"]);
 </script>

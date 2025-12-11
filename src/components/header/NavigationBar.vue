@@ -2,40 +2,29 @@
 import SearchMenu from './SearchMenu.vue';
 import SignUpMenu from './SignupMenu.vue';
 import ProfileMenu from './ProfileMenu.vue';
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 import { useStore } from "vuex";
 
-const store = useStore()
-const menuComponent = ref("signup-menu")
+const store = useStore();
 
 const components = {
     'signup-menu': SignUpMenu,
     'profile-menu': ProfileMenu
-}
+};
 
-const getToken = computed(() => {
-    return store.state.auth.token;
-});
-
-if (!getToken.value) {
-    menuComponent.value = 'signup-menu'
-} else {
-    menuComponent.value = 'profile-menu'
-}
-
-watch(getToken, (newValue, oldValue) => {
-    if (!newValue) {
-        menuComponent.value = "signup-menu";
-    } else {
-        menuComponent.value = "profile-menu";
-    }
+// ✅ Gunakan computed langsung untuk menuComponent
+const menuComponent = computed(() => {
+    const isAuthenticated = store.getters['auth/isAuthenticated'];
+    return isAuthenticated ? 'profile-menu' : 'signup-menu';
 });
 </script>
 
 <template>
     <div class="header__navbar row justify-content-between align-items-center" style="width: 450px;">
         <SearchMenu />
-        <component :is="components[menuComponent]"></component>
+        <transition name="fade" mode="out-in">
+            <component :is="components[menuComponent]" :key="menuComponent"></component>
+        </transition>
     </div>
 </template>
 
@@ -86,7 +75,7 @@ watch(getToken, (newValue, oldValue) => {
 /* Transition animations */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .fade-enter-from {

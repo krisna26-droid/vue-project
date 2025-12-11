@@ -6,7 +6,7 @@ export default {
     state() {
         return {
             recipes: [],
-            recipeDetail: {},
+            recipeDetail: null,
         };
     },
 
@@ -22,6 +22,18 @@ export default {
         setNewRecipe(state, payload) {
             state.recipes.push(payload);
         },
+
+        // ✅ TAMBAHKAN MUTATION INI
+        updateRecipeInList(state, payload) {
+            const index = state.recipes.findIndex(recipe => recipe.id === payload.id);
+            if (index !== -1) {
+                state.recipes[index] = payload;
+            }
+            // Update recipeDetail juga jika sedang dilihat
+            if (state.recipeDetail && state.recipeDetail.id === payload.id) {
+                state.recipeDetail = payload;
+            }
+        },
     },
 
     actions: {
@@ -30,7 +42,7 @@ export default {
                 const { data } = await axios.get(
                     `https://vue-js-project-53d71-default-rtdb.firebaseio.com/recipes/${payload}.json`
                 );
-                commit('setRecipeDetail', data);
+                commit('setRecipeDetail', { id: payload, ...data }); // Tambahkan id
             } catch (err) {
                 console.log(err);
             }
@@ -74,9 +86,40 @@ export default {
             }
         },
 
-        async deleteRecipe({dispatch, rootState }, payload) {
+        // ✅ TAMBAHKAN ACTION INI UNTUK UPDATE
+        async updateRecipe({ commit, rootState }, payload) {
+            const { id, ...recipeData } = payload; // Pisahkan id dari data
+
+            // Data yang akan di-update (tanpa mengubah data asli seperti createdAt, userId, dll)
+            const updatedData = {
+                ...recipeData,
+                // Pertahankan field yang tidak boleh diubah
+                username: rootState.auth.userLogin.username,
+                userId: rootState.auth.userLogin.userId,
+            };
+
             try {
-                const { data } = await axios.delete(`https://vue-js-project-53d71-default-rtdb.firebaseio.com/recipes/${payload}.json?auth=${rootState.auth.token}`);
+                // PUT request ke Firebase untuk update seluruh data
+                await axios.put(
+                    `https://vue-js-project-53d71-default-rtdb.firebaseio.com/recipes/${id}.json?auth=${rootState.auth.token}`,
+                    updatedData
+                );
+
+                // Update state lokal
+                commit('updateRecipeInList', { id, ...updatedData });
+                
+                return { success: true };
+            } catch (err) {
+                console.error('Error updating recipe:', err);
+                throw err;
+            }
+        },
+
+        async deleteRecipe({ dispatch, rootState }, payload) {
+            try {
+                await axios.delete(
+                    `https://vue-js-project-53d71-default-rtdb.firebaseio.com/recipes/${payload}.json?auth=${rootState.auth.token}`
+                );
                 await dispatch('getRecipeData');
             } catch (err) {
                 console.log(err);
