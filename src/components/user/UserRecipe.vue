@@ -18,11 +18,11 @@
       <div class="row">
         <user-recipe-card 
           v-for="recipe in recipes" 
-          :key="recipe.id" 
+          :key="recipe._id" 
           :recipe="recipe" 
           :buttonName="['Delete', 'Edit']"
-          @delete="handleDelete(recipe.id)"
-          @edit="handleEdit(recipe.id)"
+          @delete="handleDelete(recipe._id)"
+          @edit="handleEdit(recipe._id)"
         >
           <p>{{ new Date(recipe.createdAt).toDateString() }}</p>
         </user-recipe-card>
@@ -51,12 +51,12 @@ const recipes = computed(() => {
   return allRecipe.filter((recipe) => recipe.userId === userId);
 });
 
-// Navigasi ke halaman add recipe
+// Fungsi untuk ke halaman add recipe
 const goToNewRecipePage = () => {
   router.push('/new-recipe');
 };
 
-// Delete recipe
+// Fungsi untuk delete recipe
 const handleDelete = async (recipeId) => {
   if (confirm('Are you sure you want to delete this recipe?')) {
     try {
@@ -68,8 +68,26 @@ const handleDelete = async (recipeId) => {
   }
 };
 
-// Edit recipe - FIXED: tambahkan slash di awal dan gunakan /user
+// Fungsi untuk edit recipe
 const handleEdit = (recipeId) => {
-  router.push(`/user/edit-recipe/${recipeId}`);
+  if (recipeId) {
+    router.push(`/user/edit-recipe/${recipeId}`);
+  } else {
+    alert('Unable to edit recipe');
+  }
 };
 </script>
+
+<style scoped>
+.add-btn {
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.add-btn:hover {
+  background-color: #ff5252;
+  color: white;
+}
+</style>
