@@ -6,22 +6,25 @@
         </label>
 
         <!-- Input normal -->
-        <input
-            v-if="!isImage"
-            class="form-control"
-            :type="type"
-            :id="identity"
-            :placeholder="placeholder"
-            :readonly="readonly === '1'"
-            :value="modelValue"
-            @input="$emit('update:modelValue', $event.target.value)"
-        />
+        <div v-if="!isImage" :class="{'input-wrapper': type == 'file'}">
+            <input
+                class="form-control"
+                :type="type"
+                :id="identity"
+                :placeholder="placeholder"
+                :readonly="readonly === '1'"
+                :value="modelValue"
+                @input="$emit('update:modelValue', $event.target.value)"
+                @keyup="$emit('keyInput', $event.target.value)"
+                @focus="$emit('totalTimeFocus', $event.target.value)"
+            />
+        </div>
 
         <!-- Input Image -->
-        <div v-else>
+        <div v-else :class="{'input-wrapper': type == 'file'}">
             <input
+                :class="[{ 'file-input': type == 'file' }, 'form-control']"
                 type="file"
-                class="form-control"
                 :id="identity"
                 accept="image/*"
                 @change="handleImageUpload"
@@ -52,7 +55,11 @@ const props = defineProps({
     isImage: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits([
+    "update:modelValue", 
+    "keyInput", 
+    "totalTimeFocus"
+]);
 
 const preview = ref(null);
 
@@ -64,3 +71,35 @@ const handleImageUpload = (e) => {
     }
 };
 </script>
+
+<style scoped>
+.input-wrapper {
+    padding: 0.375rem 0.75rem;
+    width: 200px;
+    text-align: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    border: 1px solid #ced4da;
+    background-color: #ced4da;
+    border-radius: 0.375rem;
+    margin-bottom: 10px;
+    transition: all 1s ease;
+}
+
+.input-wrapper:hover {
+    background-color: #b9bec3;
+}
+
+.file-input {
+    cursor: pointer;
+    height: 100px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 99;
+    font-size: 50px;
+    opacity: 0;
+}
+</style>

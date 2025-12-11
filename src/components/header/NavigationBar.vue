@@ -1,62 +1,43 @@
-<template>
-  <div class="header__navbar">
-    <div class="container-fluid px-4">
-      <div class="row align-items-center g-3">
-        <!-- Search Menu - Center -->
-        <div class="col">
-          <div class="search-wrapper mx-auto">
-            <SearchMenu />
-          </div>
-        </div>
-
-        <!-- Auth Section (Signup or Profile) - Right -->
-        <div class="col-auto">
-          <Transition name="fade" mode="out-in">
-            <component :is="currentComponent" :key="menuComponent"></component>
-          </Transition>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
-import { computed, ref, watch } from "vue";
+import SearchMenu from './SearchMenu.vue';
+import SignUpMenu from './SignupMenu.vue';
+import ProfileMenu from './ProfileMenu.vue';
+import { computed, ref, watch } from 'vue';
 import { useStore } from "vuex";
-import SearchMenu from "./SearchMenu.vue";
-import SignupMenu from "./SignupMenu.vue";
-import ProfileMenu from "./ProfileMenu.vue";
 
-const store = useStore();
+const store = useStore()
+const menuComponent = ref("signup-menu")
 
-// Component mapping
 const components = {
-  'signup-menu': SignupMenu,
-  'profile-menu': ProfileMenu,
-};
+    'signup-menu': SignUpMenu,
+    'profile-menu': ProfileMenu
+}
 
-// Reactive menu component
-const menuComponent = ref('signup-menu');
+const getToken = computed(() => {
+    return store.state.auth.token;
+});
 
-// Get token from store
-const getToken = computed(() => store.state.auth?.token || null);
+if (!getToken.value) {
+    menuComponent.value = 'signup-menu'
+} else {
+    menuComponent.value = 'profile-menu'
+}
 
-// Computed current component
-const currentComponent = computed(() => components[menuComponent.value]);
-
-// Initialize component based on token
-const initializeComponent = () => {
-  menuComponent.value = getToken.value ? 'profile-menu' : 'signup-menu';
-};
-
-// Watch token changes
-watch(getToken, (newToken) => {
-  menuComponent.value = newToken ? 'profile-menu' : 'signup-menu';
-}, { immediate: true });
-
-// Initialize on mount
-initializeComponent();
+watch(getToken, (newValue, oldValue) => {
+    if (!newValue) {
+        menuComponent.value = "signup-menu";
+    } else {
+        menuComponent.value = "profile-menu";
+    }
+});
 </script>
+
+<template>
+    <div class="header__navbar row justify-content-between align-items-center" style="width: 450px;">
+        <SearchMenu />
+        <component :is="components[menuComponent]"></component>
+    </div>
+</template>
 
 <style scoped>
 .header__navbar {
